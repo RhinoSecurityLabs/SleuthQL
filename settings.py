@@ -847,9 +847,7 @@ sqlRegex += [
     "^(?i)id$",
     # User added
     ".*(?i)TITLE.*",
-    ".*(?i)CATEGORY.*",
-    # Just numbered values
-    "^[0-9]+$"
+    ".*(?i)CATEGORY.*"
 ]
 
 # Add compiled data dicts here
