@@ -451,7 +451,7 @@ def createSQLMapRequest(request, insertion_point):
         newreq = request
     return newreq
 
-def getSQLInsertionPoint(req, loc, key=None):
+def getSQLInsertionPoint(req, loc, key=None, verbose=False):
     """
     Find where to inject based on location. Looks
     for common terminators of parameters in various types
@@ -470,17 +470,24 @@ def getSQLInsertionPoint(req, loc, key=None):
     if 'Content-Type: application/json' in req:
         # Looking for a different set of key markers in the request body.
         # JSON is separated by quotes and commas.
-        if req.find('",', loc) != -1:
-            # It's one parameter amongst many
-            insertion_point = req.find('",', loc)
-        elif req.find('"}', loc) != -1:
-            # Do some more stuff
-            insertion_point = req.find('"}', loc)
-        elif req.find('"\r\n', loc) != -1:
-            insertion_point = req.find('"\r\n', loc)
-        elif req.find('"\n', loc) != -1:
-            insertion_point = req.find('"\n', loc)
-        else:
+        try:
+            if req.find('",', loc) != -1:
+                # It's one parameter amongst many
+                insertion_point = req.find('",', loc)
+            elif req.find('"}', loc) != -1:
+                # Do some more stuff
+                insertion_point = req.find('"}', loc)
+            elif req.find('"\r\n', loc) != -1:
+                insertion_point = req.find('"\r\n', loc)
+            elif req.find('"\n', loc) != -1:
+                insertion_point = req.find('"\n', loc)
+            else:
+                pass
+        except Exception, e:
+            if verbose:
+                print("[-] Exception when parsing json: {}".format(e))
+                print("[-] req: {}".format(req))
+                print("[-] loc: {}".format(loc))
             pass
     elif 'Content-Type: application/xml' in req or 'Content-Type: text/xml' in req:
         """
@@ -503,13 +510,23 @@ def getSQLInsertionPoint(req, loc, key=None):
             soup = BeautifulSoup(reqdata, 'xml')
             if soup.find(key):
                 # Valid key found in XML!
-                if soup.find(key).string[-1] != "*":
+                if len(soup.find(key).string) == 0:
+                    soup.find(key).string += "*"
+                    insertion_point = True
+                    diced[1] = str(soup)
+                    req = "\r\n\r\n".join(diced)
+                elif soup.find(key).string[-1] != "*":
                     # We haven't inserted a marker here yet, add
                     soup.find(key).string += "*"
                     insertion_point = True
                     diced[1] = str(soup)
                     req = "\r\n\r\n".join(diced)
         except Exception as e:
+            if verbose:
+                print("[-] Exception when injecting into xml data: {}".format(e))
+                print("[-] diced: {}".format(diced))
+                print("[-] reqdata: {}".format(reqdata))
+                print("[-] key: {}".format(key))
             pass
                     
     elif 'Content-Type: multipart/form-data' in req:
@@ -521,35 +538,56 @@ def getSQLInsertionPoint(req, loc, key=None):
         count = 0
         insertion_point = False
         for i in range(len(lines)):
-            if add_asterisk:
-                if count == 1:
-                    if lines[i][-1] != "*":
-                        lines[i] += "*"
-                        insertion_point = True
-                        add_asterisk = False
+            try:
+                if add_asterisk:
+                    if count == 1:
+                        # Error check to see if lines[i] is not empty
+                        # Ref: https://github.com/RhinoSecurityLabs/SleuthQL/issues/1#issuecomment-391109065
+                        if len(lines[i]) == 0:
+                            lines[i] += "*"
+                            insertion_point = True
+                            add_asterisk = False
+                        elif lines[i][-1] != "*":
+                            lines[i] += "*"
+                            insertion_point = True
+                            add_asterisk = False
                         count = 0
                     else:
-                        count = 0
-                else:
-                    count += 1
-            elif 'name="{}"'.format(key) in lines[i]:
-                add_asterisk = True
+                        count += 1
+                elif 'name="{}"'.format(key) in lines[i]:
+                    add_asterisk = True
+            except Exception, e:
+                if verbose:
+                    print("[-] Exception when injecting into multipart/form-data: {}".format(e))
+                    print("[-] lines[i]: {}".format(lines[i]))
+                    print("[-] reqdata : {}".format(reqdata))
+                    print("[-] count   : {}".format(count))
+                    print("[-] add_asterisk   : {}".format(add_asterisk))
+                    print("[-] insertion_point: {}".format(insertion_point))
+                pass
         if insertion_point:
             diced[1] = "\r\n".join(lines)
             req = "\r\n\r\n".join(diced[0:2])
 
     else:
-        # Regular encoding
-        if req.find("&",loc) != -1:
-            # Somewhere in GET or POST body
-            insertion_point = req.find("&", loc)
-        elif req.find(" HTTP",loc) != -1:
-            # End of GET query param
-            insertion_point = req.find(" HTTP", loc)
-        elif 'POST ' in req:
-            # End of doc!
-            insertion_point = len(req)
-        else:
+        try:
+            # Regular encoding
+            if req.find("&",loc) != -1:
+                # Somewhere in GET or POST body
+                insertion_point = req.find("&", loc)
+            elif req.find(" HTTP",loc) != -1:
+                # End of GET query param
+                insertion_point = req.find(" HTTP", loc)
+            elif 'POST ' in req:
+                # End of doc!
+                insertion_point = len(req)
+            else:
+                pass
+        except Exception, e:
+            if verbose:
+                print("[-] Error occured while parsing url-encoded data: {}".format(e))
+                print("[-] req: {}".format(req))
+                print("[-] loc: {}".format(loc))
             pass
     if insertion_point and insertion_point is not True:
         req = createSQLMapRequest(req, insertion_point)
@@ -557,7 +595,7 @@ def getSQLInsertionPoint(req, loc, key=None):
     return (insertion_point, req)
 
 
-def findSQLParams(params):
+def findSQLParams(params, verbose=False):
     """
     Find return a list of parameters that seem to match SQL syntax
     params is a dict.
@@ -625,7 +663,7 @@ def findSQLParams(params):
                     if key in req:
                         # Found the parameter in the request!
                         loc = req.index(key)
-                        insertion_point, req = getSQLInsertionPoint(req, loc, key=key)
+                        insertion_point, req = getSQLInsertionPoint(req, loc, key=key, verbose=verbose)
                         if insertion_point:
                             add_req = True
                             data['completed'] = True
@@ -646,7 +684,7 @@ def findSQLParams(params):
                             elif str(val) in req:
                                 # We've found it!
                                 loc = req.index(val)
-                                insertion_point, req = getSQLInsertionPoint(req, loc, key=key)
+                                insertion_point, req = getSQLInsertionPoint(req, loc, key=key, verbose=verbose)
                                 if insertion_point:
                                     add_req = True
                                     tracking_dict[key].add(val)
@@ -660,7 +698,7 @@ def findSQLParams(params):
 
     return results
 
-def createResults(parsed_xml_results):
+def createResults(parsed_xml_results, verbose=False):
     """
     Take the results from parse_xml and create an actionable
     dictionary with data regarding the SQL requests.
@@ -701,7 +739,7 @@ def createResults(parsed_xml_results):
         for path, methods in sitemap.items():
             for method, params in methods.items():
                 # params has key 'params' and key 'requests'
-                sqlData = findSQLParams(params)
+                sqlData = findSQLParams(params, verbose=verbose)
                 # counter = 0
                 if sqlData['params']:
                     # Initialize results dictionary.
@@ -785,7 +823,7 @@ It will also create a directory with SQLMap ready request files.
     domains = [x.strip() for x in options.domains.split(',')]
 
     parsed_xml_results = parse_xml(soup, domains, verbose=options.verbose)
-    results = createResults(parsed_xml_results)
+    results = createResults(parsed_xml_results, verbose=options.verbose)
 
     print("\nResults")
     print("-"*7)
