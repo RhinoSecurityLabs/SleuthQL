@@ -876,7 +876,7 @@ sqlRegex += [
     ".*(?i)delete$",
     ".*(?i)string$",
     ".*(?i)number$",
-    ".*(?i)filter"
+    ".*(?i)filter$"
 ]
 
 # Add compiled data dicts here
