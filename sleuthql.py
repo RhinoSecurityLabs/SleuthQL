@@ -523,7 +523,7 @@ def getSQLInsertionPoint(req, loc, key=None):
         for i in range(len(lines)):
             if add_asterisk:
                 if count == 1:
-                    if lines[i][-1] != "*":
+                    if lines[i] and lines[i][-1] != "*":
                         lines[i] += "*"
                         insertion_point = True
                         add_asterisk = False
