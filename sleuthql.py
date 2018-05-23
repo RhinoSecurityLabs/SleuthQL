@@ -483,7 +483,7 @@ def getSQLInsertionPoint(req, loc, key=None, verbose=False):
                 insertion_point = req.find('"\n', loc)
             else:
                 pass
-        except Exception, e:
+        except Exception as e:
             if verbose:
                 print("[-] Exception when parsing json: {}".format(e))
                 print("[-] req: {}".format(req))
@@ -556,7 +556,7 @@ def getSQLInsertionPoint(req, loc, key=None, verbose=False):
                         count += 1
                 elif 'name="{}"'.format(key) in lines[i]:
                     add_asterisk = True
-            except Exception, e:
+            except Exception as e:
                 if verbose:
                     print("[-] Exception when injecting into multipart/form-data: {}".format(e))
                     print("[-] lines[i]: {}".format(lines[i]))
@@ -583,7 +583,7 @@ def getSQLInsertionPoint(req, loc, key=None, verbose=False):
                 insertion_point = len(req)
             else:
                 pass
-        except Exception, e:
+        except Exception as e:
             if verbose:
                 print("[-] Error occured while parsing url-encoded data: {}".format(e))
                 print("[-] req: {}".format(req))
