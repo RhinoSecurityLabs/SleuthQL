@@ -841,13 +841,42 @@ sqlRegex = [
 # Add additional regexes here
 
 sqlRegex += [
-    # This will match things like "userID, user_id, name1id"
-    ".*[a-zA-Z0-9]+(_)?(?i)id$",
+    # This will match things like "userID, user_id, name1id, user-id, user.id"
+    ".*[a-zA-Z0-9]+[._-]?(?i)id$",
     # only ID parameter (the classic)
     "^(?i)id$",
     # User added
     ".*(?i)TITLE.*",
-    ".*(?i)CATEGORY.*"
+    ".*(?i)CATEGORY.*",
+    # taken from https://github.com/bugcrowd/HUNT/blob/master/Burp/conf/issues.json#L80
+    "(?i)select$",
+    "(?i)report$",
+    "(?i)role$",
+    "(?i)update$",
+    "(?i)query$",
+    "(?i)user$",
+    "(?i)name$",
+    "(?i)sort$",
+    "(?i)where$",
+    "(?i)search$",
+    "(?i)params$",
+    "(?i)process$",
+    "(?i)row$",
+    "(?i)view$",
+    "(?i)table$",
+    "(?i)from$",
+    "(?i)sel$",
+    "(?i)results$",
+    "(?i)sleep$",
+    "(?i)fetch$",
+    "(?i)order$",
+    "(?i)keyword$",
+    "(?i)column$",
+    "(?i)field$",
+    "(?i)delete$",
+    "(?i)string$",
+    "(?i)number$",
+    "(?i)filter$"
 ]
 
 # Add compiled data dicts here
