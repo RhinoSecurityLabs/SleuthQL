@@ -848,35 +848,18 @@ sqlRegex += [
     # User added
     ".*(?i)TITLE.*",
     ".*(?i)CATEGORY.*",
-    # taken from https://github.com/bugcrowd/HUNT/blob/master/Burp/conf/issues.json#L80
-    "(?i)select$",
+    # taken from https://github.com/bugcrowd/HUNT/blob/master/Burp/conf/issues.json#L80 
     "(?i)report$",
-    "(?i)role$",
-    "(?i)update$",
     "(?i)query$",
-    "(?i)user$",
-    "(?i)name$",
     "(?i)sort$",
-    "(?i)where$",
-    "(?i)search$",
-    "(?i)params$",
-    "(?i)process$",
-    "(?i)row$",
-    "(?i)view$",
-    "(?i)table$",
-    "(?i)from$",
     "(?i)sel$",
     "(?i)results$",
     "(?i)sleep$",
-    "(?i)fetch$",
     "(?i)order$",
     "(?i)keyword$",
-    "(?i)column$",
     "(?i)field$",
-    "(?i)delete$",
     "(?i)string$",
-    "(?i)number$",
-    "(?i)filter$"
+    "(?i)number$"
 ]
 
 # Add compiled data dicts here
