@@ -72,7 +72,7 @@ For each potentially vulnerable request, the SQLMap parameterized request will b
 
 # Video Demo
 
-https://youtu.be/hT7qBG7OxOw
+https://youtu.be/Sp3FevOAmCs
 
 ## License
 
