@@ -584,7 +584,7 @@ def findSQLParams(params):
             keyMatch = False
             valMatch = False
             # If key looks suspicious
-            if regex.match(key):
+            if regex.match(str(key)):
                 # Debugging
                 keyMatch = True
                 # sqlParams.append(key)
@@ -622,7 +622,7 @@ def findSQLParams(params):
                     pass
                 elif data['keyMatch']:
                     # Do the work.
-                    if key in req:
+                    if str(key) in req:
                         # Found the parameter in the request!
                         loc = req.index(key)
                         insertion_point, req = getSQLInsertionPoint(req, loc, key=key)
@@ -801,7 +801,7 @@ It will also create a directory with SQLMap ready request files.
         for path, method_dict in path_dict.items():
             for method, data in method_dict.items():
                 print("\t{} {}:".format(method, path))
-                print("\t\t{}".format(",".join(data['params'])))
+                #print("\t\t{}".format(",".join(data['params'])))
                 counter = 0
                 for request in data['requests']:
                     with open("{}/{}_{}_{}.txt".format(domain, method, path.replace("/","."), counter), 'w') as f:
